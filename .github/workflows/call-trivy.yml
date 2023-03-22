@@ -1,0 +1,9 @@
+name: Call Trivy
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  scan:
+    name: Scan
+    uses: mostlydevops/wordsmith-web/.github/workflows/reusable-trivy.yml@main
