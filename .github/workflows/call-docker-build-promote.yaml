@@ -83,8 +83,8 @@ jobs:
   gitops-pr:
     name: Call GitOps PR
     if: github.event_name == 'push'
-    needs: docker-build-pr
-    uses: mostlydevops/actions/.github/workflows/reusable-gitops-pr.yaml
+    needs: docker-build-merge
+    uses: mostlydevops/actions/.github/workflows/reusable-gitops-pr.yaml@main
     secrets:
       # github token with write access to the gitops repo
       github-token: ${{ secrets.GITOPS_TOKEN }}
