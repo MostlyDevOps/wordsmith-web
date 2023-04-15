@@ -1,38 +1,32 @@
 ---
 name: Build-Promote-GitOps
-# TEMPLATE source: https://github.com/BretFisher/github-actions-templates
 
 on:
   push:
     branches:
       - main
-    # don't rebuild image if someone only edited unrelated files
     paths-ignore:
       - 'README.md'
       - '.github/linters/**'
   pull_request:
-    # don't rebuild image if someone only edited unrelated files
     paths-ignore:
       - 'README.md'
       - '.github/linters/**'
 
-# cancel any previously-started, yet still active runs of this workflow on the same branch
 concurrency:
-
   group: ${{ github.ref }}-${{ github.workflow }}
   cancel-in-progress: true
 
 jobs:
 
-  # run this job on every push to a PR
-  # it will push images to GHCR, but not Docker Hub
+#### PULL REQUEST ####
   docker-build-pr:
     name: Call Build on PR
     if: github.event_name == 'pull_request'
     permissions:
       contents: read
-      packages: write # needed to push docker image to ghcr.io
-      pull-requests: write # needed to create and update comments in PRs
+      packages: write
+      pull-requests: write
     uses: mostlydevops/actions/.github/workflows/reusable-docker-build.yaml@main
     with:
       # DON'T login to or push to Docker Hub
@@ -42,8 +36,6 @@ jobs:
       image-names: |
         ghcr.io/${{ github.repository }}
 
-  # after a PR builds the image, run a vulnerability scan
-  # fail the check if there are any HIGH or CRITICAL vulnerabilities
   scan-pr:
     name: CVE Scan
     if: github.event_name == 'pull_request'
@@ -59,18 +51,15 @@ jobs:
       exit-code: 1
       severity: HIGH,CRITICAL
       ignore-unfixed: true
-          
-  # run this job on every push to the default branch (including merges and tags)
-  # it will push images to GHCR and DockerHub
-  # tags will also include ones like `stable-<date>-<sha>` and `latest`
+
+#### MERGE TO MAIN ####
   docker-build-merge:
     name: Call Build on Push
-    # this if is filtered to only the main branch push event (see events at top)
     if: github.event_name == 'push'
     permissions:
       contents: read
-      packages: write # needed to push docker image to ghcr.io
-      pull-requests: write # Even though no PR is needed, this is required by reusable workflow
+      packages: write
+      pull-requests: write
     uses: mostlydevops/actions/.github/workflows/reusable-docker-build.yaml@main
     with:  
       dockerhub-enable: false
@@ -79,34 +68,15 @@ jobs:
       image-names: |
         ghcr.io/${{ github.repository }}-stable
 
-  # this job runs after a push/merge to the default branch
-  # it will create a PR on a *different* repo that has
-  # Kustomize YAML, and will update the image tags to the new one
-  # This is an example of a "promotion" workflow where once a new image
-  # is created from the default_branch of an app, that a Kubernetes
-  # environment YAML needs to be updated as well.
-  # This will save humans the steps of looking up the new image tag
-  # and creating a new PR to update the Kustomize YAML.
-  # You could also change this to update a Helm chart values file.
   gitops-pr:
     name: Call GitOps PR
     if: github.event_name == 'push'
     needs: docker-build-merge
     uses: mostlydevops/actions/.github/workflows/reusable-gitops-pr.yaml@main
     secrets:
-      # github token with write access to the gitops repo
       github-token: ${{ secrets.GITOPS_TOKEN }}
-      # OPTIONAL. If this has a value, it'll notify a slack channel after PR is created
-      # slack-token: ${{ secrets.SLACK_BOT_TOKEN }}
     with:
-      # your gitops repo
       repo: mostlydevops/wordsmith-k8s
-      # FIXME: change to the environment path
-      kustomize-path: environments/ENV_NAME
-      # the image you just built that you want to change the tag for
-      image: ghcr.io/${{ github.repository }}
-      # we grab the tag output from the docker build, based on "priority"
-      # see the reusable workflow for details
+      kustomize-path: environments/staging
+      image: ghcr.io/${{ github.repository }}-stable
       tag: ${{ needs.docker-build-merge.outputs.image-tag }}
-      # OPTIONAL. Enable if slack-token is enabled above
-      # slack-channel-id: ${{ vars.SLACK_CHANNEL_ID }}
