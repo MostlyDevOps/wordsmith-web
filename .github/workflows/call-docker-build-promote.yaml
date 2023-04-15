@@ -70,6 +70,7 @@ jobs:
     permissions:
       contents: read
       packages: write # needed to push docker image to ghcr.io
+      pull-requests: write # Even though no PR is needed, this is required by reusable workflow
     uses: mostlydevops/actions/.github/workflows/reusable-docker-build.yaml@main
     with:  
       dockerhub-enable: false
