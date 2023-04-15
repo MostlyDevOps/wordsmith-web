@@ -29,6 +29,10 @@ jobs:
   docker-build-pr:
     name: Call Build on PR
     if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      packages: write # needed to push docker image to ghcr.io
+      pull-requests: write # needed to create and update comments in PRs
     uses: mostlydevops/actions/.github/workflows/reusable-docker-build.yaml@main
     with:
       # DON'T login to or push to Docker Hub
@@ -63,6 +67,9 @@ jobs:
     name: Call Build on Push
     # this if is filtered to only the main branch push event (see events at top)
     if: github.event_name == 'push'
+    permissions:
+      contents: read
+      packages: write # needed to push docker image to ghcr.io
     uses: mostlydevops/actions/.github/workflows/reusable-docker-build.yaml@main
     with:  
       dockerhub-enable: false
