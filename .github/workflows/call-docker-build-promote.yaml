@@ -66,6 +66,7 @@ jobs:
       ghcr-enable: true
       push: true
       image-names: |
+        ghcr.io/${{ github.repository }}
         ghcr.io/${{ github.repository }}-stable
 
   gitops-pr:
