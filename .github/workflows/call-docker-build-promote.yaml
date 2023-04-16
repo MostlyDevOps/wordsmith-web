@@ -82,6 +82,6 @@ jobs:
       github-token: ${{ secrets.GITOPS_WORDSMITH_K8S }}
     with:
       repo: mostlydevops/wordsmith-k8s
-      kustomize-path: environments/production
+      environment-dir: production
       image: ghcr.io/${{ github.repository }}-stable
       tag: ${{ needs.docker-build-merge.outputs.image-tag }}
