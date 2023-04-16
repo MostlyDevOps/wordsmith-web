@@ -66,6 +66,7 @@ jobs:
       ghcr-enable: true
       push: true
       image-names: |
+        ghcr.io/${{ github.repository }}
         ghcr.io/${{ github.repository }}-stable
 
   gitops-pr:
@@ -77,6 +78,6 @@ jobs:
       github-token: ${{ secrets.GITOPS_WORDSMITH_K8S }}
     with:
       repo: mostlydevops/wordsmith-k8s
-      kustomize-path: environments/staging
+      kustomize-path: environments/production
       image: ghcr.io/${{ github.repository }}-stable
       tag: ${{ needs.docker-build-merge.outputs.image-tag }}
