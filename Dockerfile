@@ -1,14 +1,23 @@
 # BUILD
-FROM golang:alpine as builder
+# use the build platforms matching arch rather than target arch
+FROM --platform=$BUILDPLATFORM golang:alpine as builder
+
+ARG TARGETARCH
+
+WORKDIR /go
 
 COPY dispatcher.go .
-RUN go build dispatcher.go
+
+# build for the target arch not the build platform host arch
+RUN GOOS=linux GOARCH=$TARGETARCH go build dispatcher.go
 
 # RUN
-FROM alpine
+# defaults to using the target arch image
+FROM scratch as run
+
+COPY --from=builder /go/dispatcher /dispatcher
+COPY static /static/
 
 EXPOSE 80
-CMD ["/dispatcher"]
 
-COPY --from=builder /go/dispatcher /
-COPY static /static/
+CMD ["/dispatcher"]
