@@ -33,6 +33,7 @@ jobs:
       dockerhub-enable: false
       ghcr-enable: true
       push: true
+      platforms: linux/amd64,linux/arm64
       image-names: |
         ghcr.io/${{ github.repository }}
 
@@ -40,7 +41,7 @@ jobs:
     name: CVE Scan
     if: github.event_name == 'pull_request'
     needs: docker-build-pr
-    permissions: 
+    permissions:
       packages: read
     uses: mostlydevops/actions/.github/workflows/reusable-trivy-scan-image.yaml@main
     secrets:
@@ -61,10 +62,11 @@ jobs:
       packages: write
       pull-requests: write
     uses: mostlydevops/actions/.github/workflows/reusable-docker-build.yaml@main
-    with:  
+    with:
       dockerhub-enable: false
       ghcr-enable: true
       push: true
+      platforms: linux/amd64,linux/arm64
       image-names: |
         ghcr.io/${{ github.repository }}
         ghcr.io/${{ github.repository }}-stable
