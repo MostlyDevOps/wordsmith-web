@@ -27,7 +27,7 @@ jobs:
       contents: read
       packages: write
       pull-requests: write
-    uses: mostlydevops/actions/.github/workflows/reusable-docker-build.yaml@main
+    uses: ${{ github.repository_owner }}/actions/.github/workflows/reusable-docker-build.yaml@main
     with:
       # DON'T login to or push to Docker Hub
       dockerhub-enable: false
@@ -43,7 +43,7 @@ jobs:
     needs: docker-build-pr
     permissions:
       packages: read
-    uses: mostlydevops/actions/.github/workflows/reusable-trivy-scan-image.yaml@main
+    uses: ${{ github.repository_owner }}/actions/.github/workflows/reusable-trivy-scan-image.yaml@main
     secrets:
       registry-username: ${{ github.actor }}
       registry-password: ${{ secrets.GITHUB_TOKEN }}
@@ -53,6 +53,20 @@ jobs:
       severity: HIGH,CRITICAL
       ignore-unfixed: true
 
+  preview:
+    name: Preview
+    if: github.event_name == 'pull_request'
+    needs: docker-build-pr
+    uses: ${{ github.repository_owner }}/actions/.github/workflows/reusable-uffizzi.yaml@main
+    secrets:
+      github-token: ${{ secrets.GITOPS_WORDSMITH_K8S }}
+    with:
+      repo: ${{ github.repository_owner }}/wordsmith-k8s
+      environment-dir: uffizzi
+      image: ghcr.io/${{ github.repository }}
+      tag: ${{ needs.docker-build-pr.outputs.image-tag }}
+      pr-number: ${{ github.event.number }}
+
 #### MERGE TO MAIN ####
   docker-build-merge:
     name: Call Build on Push
@@ -61,7 +75,7 @@ jobs:
       contents: read
       packages: write
       pull-requests: write
-    uses: mostlydevops/actions/.github/workflows/reusable-docker-build.yaml@main
+    uses: ${{ github.repository_owner }}/actions/.github/workflows/reusable-docker-build.yaml@main
     with:
       dockerhub-enable: false
       ghcr-enable: true
@@ -79,7 +93,7 @@ jobs:
     name: Call GitOps PR
     if: github.event_name == 'push'
     needs: docker-build-merge
-    uses: mostlydevops/actions/.github/workflows/reusable-gitops-pr.yaml@main
+    uses: ${{ github.repository_owner }}/actions/.github/workflows/reusable-gitops-pr.yaml@main
     secrets:
       github-token: ${{ secrets.GITOPS_WORDSMITH_K8S }}
     with:
