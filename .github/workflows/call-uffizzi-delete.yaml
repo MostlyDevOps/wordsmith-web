@@ -1,0 +1,19 @@
+---
+name: Close Pull Request
+
+on:
+  pull_request:
+    types: [closed]
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  delete-preview:
+    name: Delete Uffizzi virtual cluster preview
+    uses: mostlydevops/actions/.github/workflows/reusable-uffizzi-delete.yaml@main
+    secrets:
+      github-token: ${{ secrets.GITOPS_WORDSMITH_K8S }}
+    with:
+      pr-number: ${{ github.event.number }}
