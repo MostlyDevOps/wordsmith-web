@@ -57,7 +57,7 @@ jobs:
     name: Preview
     if: github.event_name == 'pull_request'
     needs: docker-build-pr
-    uses: mostlydevops/actions/.github/workflows/reusable-uffizzi.yaml@main
+    uses: UffizziCloud/actions/.github/workflows/reusable-uffizzi.yaml@main
     secrets:
       github-token: ${{ secrets.GITOPS_WORDSMITH_K8S }}
     with:
