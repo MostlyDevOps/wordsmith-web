@@ -53,6 +53,20 @@ jobs:
       severity: HIGH,CRITICAL
       ignore-unfixed: true
 
+  preview:
+    name: Preview
+    if: github.event_name == 'pull_request'
+    needs: docker-build-pr
+    uses: UffizziCloud/actions/.github/workflows/reusable-uffizzi.yaml@main
+    secrets:
+      github-token: ${{ secrets.GITOPS_WORDSMITH_K8S }}
+    with:
+      repo: mostlydevops/wordsmith-k8s
+      environment-dir: preview-uffizzi
+      image: ghcr.io/${{ github.repository }}
+      tag: ${{ needs.docker-build-pr.outputs.image-tag }}
+      pr-number: ${{ github.event.number }}
+
 #### MERGE TO MAIN ####
   docker-build-merge:
     name: Call Build on Push
