@@ -1,0 +1,25 @@
+services:
+  db:
+    image: postgres:10.0-alpine
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d/
+      - "db-data:/var/lib/postgresql/data"
+      - "./healthchecks:/healthchecks"
+    healthcheck:
+      test: /healthchecks/postgres.sh
+      interval: "5s"
+    
+
+  api:
+    image: ghcr.io/mostlydevops/wordsmith-api-stable:latest
+
+  web:
+    image: ghcr.io/mostlydevops/wordsmith-web-stable:latest
+    ports:
+     - "8080:80"
+
+volumes:
+  db-data: {}
